@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080f16"><title>OctaVibe · Flight & vibration lab</title>
+  <meta name="description" content="Explore an eight-arm research drone in 3D: flight, propeller damage, arm vibration and sensor hardware.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23081017'/%3E%3Cpath d='M12 12L52 52M12 52L52 12M32 7V57M7 32H57' stroke='%23ff7838' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%236fe7ef'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><a class="brand" href="#lab">OCTA<span>VIBE</span><small>RESEARCH FLIGHT LAB</small></a><nav><a href="#hardware">Hardware</a><a href="#method">Model notes</a><span class="simulation-tag">SIMULATED DATA</span></nav></header>
+<main id="lab">
+  <div class="title-row"><div><p class="eyebrow">Eight rotors. One instrumented airframe.</p><h1>From flight to fault.</h1></div><p>Explore the aircraft, isolate an arm,<br>and see its response in motion.</p></div>
+  <div class="lab-grid">
+    <section class="viewport-panel" aria-label="Interactive drone model">
+      <div class="condition-tabs" role="group" aria-label="Fault condition">
+        <button class="active" data-mode="normal" aria-pressed="true"><span>01</span> Healthy</button>
+        <button data-mode="propeller" aria-pressed="false"><span>02</span> Damaged propeller</button>
+        <button data-mode="arm" aria-pressed="false"><span>03</span> Cracked arm</button>
+      </div>
+      <div class="scene" id="scene">
+        <div class="scene-top"><span id="phaseBadge">HOVER</span><div role="group" aria-label="Camera view"><button class="active" data-view="perspective" aria-pressed="true">3D</button><button data-view="top" aria-pressed="false">Top</button><button data-view="side" aria-pressed="false">Side</button></div></div>
+        <canvas id="flightCanvas" aria-label="3D octocopter with animated flight, selectable motors and bending arms">A WebGL-capable browser is required for the interactive drone.</canvas>
+        <div id="modelLabels" class="model-labels"></div>
+        <div class="scene-help">Drag to orbit · scroll to zoom · select a numbered rotor</div>
+        <div id="graphicsError" hidden>3D graphics could not start. Try a browser with WebGL enabled. Sensor controls remain available.</div>
+        <div class="flight-hud"><div><span>Altitude · demo</span><b id="altitude">2.0 m</b></div><div><span>Ground speed · demo</span><b id="speed">0.0 m/s</b></div><div><span>Selected arm</span><b id="armLabel">A1</b></div><div><span>Rotor frequency · 1×</span><b id="frequency">61.7 Hz</b></div></div>
+      </div>
+      <div class="flight-controls"><button id="play" class="primary">Pause</button><button id="replay" title="Restart the full flight demonstration">↻ Replay flight</button><label>Flight phase<select id="flightMode"><option value="auto">Auto flight sequence</option><option value="ground">Ground / motors off</option><option value="takeoff">Takeoff</option><option value="hover">Hover</option><option value="forward">Forward flight</option><option value="turn">Banked turn</option><option value="landing">Landing</option></select></label></div>
+      <div class="flight-timeline" aria-label="Flight sequence"><span data-phase="takeoff">Takeoff</span><span data-phase="hover" class="active">Hover</span><span data-phase="forward">Forward</span><span data-phase="turn">Turn</span><span data-phase="landing">Landing</span><span data-phase="ground">Ground</span><i id="timelineProgress"></i></div>
+      <div class="view-options"><label><input id="labelsToggle" type="checkbox" checked> Sensor labels</label><label><input id="slowRotors" type="checkbox" checked> Slow visual rotor motion</label><label>Flex exaggeration <input id="flexScale" type="range" min="1" max="5" step=".5" value="3"><output id="flexValue">3×</output></label></div>
+      <p class="fine-print">Flight motion and readings are generated for explanation. Blade motion is slowed for visibility; flex is exaggerated. Geometry is interpreted from your photos, not a dimensional CAD scan.</p>
+    </section>
+
+    <aside class="telemetry-panel">
+      <div class="panel-kicker"><span>ARM DIAGNOSTICS</span><span id="status">BASELINE</span></div>
+      <h2 id="conditionTitle">Balanced rotation</h2><p id="conditionDescription">Select an arm to inspect local vibration alongside the center-frame attitude.</p>
+      <div class="arm-picker" id="armPicker" role="group" aria-label="Select an arm"></div>
+      <label class="damage-control" id="damageControl" hidden>Propeller specimen<select id="damageType"><option value="cut">Cut blade · Test 3 style</option><option value="mass">Added mass · Test 4 style</option></select></label>
+      <div class="inspection"><div><span id="inspectionLabel">Selected rotor · intact</span><small>Stationary detail</small></div><canvas id="detailCanvas" width="560" height="170" aria-label="Close-up of selected propeller or arm damage"></canvas></div>
+      <div class="sensor-readouts">
+        <article><span class="sensor-key orange">RPM</span><div><strong>Maker Reflect S</strong><small>Selected rotor · 1 marker/rev</small></div><output id="rpmReadout">3,700 <small>rpm</small></output></article>
+        <article><span class="sensor-key cyan">XYZ</span><div><strong>ADXL335-CY</strong><small>Modeled AC vibration proxy</small></div><output id="vibReadout">0.10 <small>rel.</small></output></article>
+        <article><span class="sensor-key blue">IMU</span><div><strong>WT901C-485</strong><small>Frame roll / pitch / yaw</small></div><output class="attitude" id="imuReadout">0° / 0° / 0°</output></article>
+      </div>
+      <div class="wave-panel"><div class="panel-kicker"><span>LOCAL VIBRATION · RELATIVE UNITS</span><span class="axis-legend">X <i>Y</i> <b>Z</b></span></div><canvas id="waveCanvas" aria-label="Three simulated axis vibration waveforms"></canvas><div class="plot-caption"><span>0.10 s synthetic window</span><span id="bladePass">2-blade passage 123.3 Hz</span></div></div>
+      <div class="flex-profile"><div class="panel-kicker"><span>ARM DEFLECTION ENVELOPE</span><span>Root → tip</span></div><div class="profile-bars" id="profileBars"></div><p>Fixed-root model: movement grows toward the motor. This is displacement, not a stress map.</p></div>
+      <section class="rpm-panel"><div class="panel-kicker"><span>ALL ROTORS · SIMULATED RPM</span><span>Tap to select</span></div><div id="rpmGrid"></div></section>
+    </aside>
+  </div>
+
+  <section class="hardware-section" id="hardware"><div class="section-heading"><div><p class="eyebrow">The hardware behind the model</p><h2>From each arm to the SD card.</h2></div><p>Eight vibration sensors and eight optical RPM sensors, with a shared frame IMU and onboard logging.</p></div><div id="hardwareGrid" class="hardware-grid"></div><div class="data-path"><span>8 × ADXL335 → 2 × CD74HC4067 → ADC</span><span>8 × Maker Reflect S → RPM detection</span><span>WT901C-485 → RS485 interface</span><strong>ESP32-S3 → microSD</strong></div></section>
+  <section class="research-notes" id="method"><div><p class="eyebrow">Reading the demonstration</p><h2>What the motion means.</h2></div><article><h3>Fault ≠ lower RPM</h3><p>A controller can hold speed while imbalance increases vibration. The fault modes emphasize local vibration; maneuvers alter the rotor speed distribution.</p></article><article><h3>Tip motion, stable center</h3><p>Arm deflection follows an illustrative cantilever shape. Real mode shapes depend on joints, stiffness, sensor position and frequency. The blue IMU follows the whole frame.</p></article><article><h3>Not a measured spectrum</h3><p>The plotted signals are synthetic and bypass real sensor filtering. The linked ADXL335-CY board lists a 50 Hz bandwidth; a 3,700 rpm rotor has a 61.7 Hz fundamental. Sample rate and bandwidth must be checked before interpreting recorded flight data.</p></article></section>
+  <footer>OCTAVIBE · Research demonstration <span>Model inspired by the supplied test-airframe and fault photographs.</span></footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
