@@ -1,0 +1,14 @@
+{
+  "name": "Drone Doctor",
+  "short_name": "Drone Doctor",
+  "description": "Keep your drone healthy.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a131c",
+  "theme_color": "#0a131c",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
+

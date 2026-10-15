@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a131c">
+  <meta name="description" content="Drone Doctor monitors drone health from arm-by-arm telemetry, with live Bluetooth SPP and a safe demo mode.">
+  <title>Drone Doctor</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="welcome" class="welcome" aria-label="Drone Doctor">
+    <div class="welcome-mark" aria-hidden="true"><span></span><i></i></div>
+    <h1>Drone Doctor</h1>
+    <p>Keep your drone healthy</p>
+    <small>A CLEARER VIEW OF FLIGHT HEALTH</small>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="Drone Doctor home">
+      <span class="brand-mark" aria-hidden="true"><i></i></span>
+      <span><b>Drone Doctor</b><small>KEEP YOUR DRONE HEALTHY</small></span>
+    </a>
+    <div id="headerStatus" class="header-status"><span class="status-dot"></span><span>Not connected</span></div>
+  </header>
+
+  <main id="home" class="shell">
+    <section id="connectScreen" class="connect-screen">
+      <div class="intro">
+        <p class="eyebrow">DRONE HEALTH MONITOR</p>
+        <h2>Know what your aircraft is telling you.</h2>
+        <p>Connect to a base station or explore the monitoring interface with simulated data.</p>
+      </div>
+      <div class="connect-grid">
+        <article class="panel connect-card">
+          <div class="panel-heading"><div><p class="eyebrow">LIVE MONITORING</p><h3>Connect to base station</h3></div><span class="icon-badge">↗</span></div>
+          <p class="muted">Connect either to a paired Bluetooth Classic SPP base station or directly to the LoRa board over USB. The website only receives status data; it cannot start motors or control flight.</p>
+          <label class="field-label" for="baudRate">USB serial baud rate</label>
+          <select id="baudRate" class="select"><option value="115200">115200 baud</option><option value="9600">9600 baud</option><option value="57600">57600 baud</option><option value="38400">38400 baud</option><option value="19200">19200 baud</option></select>
+          <button id="connectBluetooth" class="button primary full">Connect via Bluetooth</button>
+          <button id="connectUsb" class="button secondary full">Connect LoRa board via USB</button>
+          <p class="fine-print">Bluetooth requires pairing first. For USB, connect the LoRa board and choose its serial port. Live serial connections require desktop Chrome or Edge over HTTPS or localhost; they are not supported in most mobile browsers.</p>
+          <p id="connectMessage" class="message" role="status"></p>
+        </article>
+
+        <article class="panel connect-card demo-card">
+          <div class="panel-heading"><div><p class="eyebrow">SAFE SANDBOX</p><h3>Explore demo</h3></div><span class="demo-pill">SIMULATED</span></div>
+          <p class="muted">Explore arm conditions, fault flags, connection loss, and the event log. Demo data never connects to or controls an aircraft.</p>
+          <label class="field-label" for="demoArms">Aircraft layout</label>
+          <select id="demoArms" class="select"><option value="8">Octocopter · 8 arms</option><option value="6">Hexacopter · 6 arms</option><option value="4">Quadcopter · 4 arms</option></select>
+          <button id="startDemo" class="button secondary full">Explore demo</button>
+          <p class="fine-print">Use Demo controls on the Monitor tab to set flight mode and try simulated fault conditions.</p>
+        </article>
+      </div>
+      <aside class="protocol-note"><b>Live data format</b><span>One complete JSON status message per line, forwarded from the drone by the base station. The web version uses Drone Doctor protocol v1.</span><a href="README.md">Connection guide</a></aside>
+    </section>
+
+    <section id="dashboard" class="dashboard" hidden>
+      <div class="dashboard-head">
+        <div><p id="aircraftName" class="eyebrow">OCTOCOPTER · DRONE 12</p><h2 id="dashboardTitle">Aircraft monitor</h2><p id="dashboardSubtitle" class="muted">Current arm-by-arm assessment</p></div>
+        <div class="head-actions"><span id="demoBanner" class="demo-pill" hidden>SIMULATED DATA</span><button id="disconnect" class="button quiet">Disconnect</button></div>
+      </div>
+      <div id="noticeArea"></div>
+      <nav class="tabs" aria-label="Drone Doctor sections">
+        <button class="tab active" data-tab="monitor">Monitor</button>
+        <button class="tab" data-tab="events">Events <span id="eventCount" class="count">0</span></button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </nav>
+
+      <section id="monitorTab" class="tab-panel">
+        <div class="monitor-grid">
+          <article class="panel aircraft-panel">
+            <div class="section-head"><div><p class="eyebrow">AIRFRAME CONDITION</p><h3>Arm map</h3></div><div class="legend"><span><i class="legend-dot normal"></i>Normal</span><span><i class="legend-dot warning"></i>Warning</span><span><i class="legend-dot danger"></i>Danger</span></div></div>
+            <div id="droneDiagram" class="drone-diagram" aria-label="Interactive aircraft arm diagram"></div>
+            <p class="diagram-help">Select an arm to inspect its assessment.</p>
+            <div id="armCards" class="arm-grid"></div>
+          </article>
+          <aside class="side-stack">
+            <article id="conditionPanel" class="panel condition-panel"><p class="eyebrow">OVERALL CONDITION</p><div class="condition-row"><span id="conditionIcon" class="condition-icon">·</span><div><h3 id="overallCondition">Waiting</h3><p id="modeText" class="muted">Mode not reported</p></div></div><div class="divider"></div><div class="data-line"><span>Telemetry</span><b id="freshness">No data</b></div><div class="data-line"><span>Data age</span><b id="dataAge">—</b></div><div class="data-line"><span>Incomplete arms</span><b id="incompleteCount">—</b></div><div id="loraDetails" class="data-line"><span>LoRa link</span><b id="loraStatus">—</b></div></article>
+            <article class="panel link-panel"><p class="eyebrow">CONNECTION</p><div class="data-line"><span>Base station</span><b id="baseConnection">Disconnected</b></div><div class="data-line"><span>LoRa receiver</span><b id="receiverState">Unknown</b></div><div class="data-line"><span>Invalid messages</span><b id="invalidCount">0</b></div><p id="liveMessage" class="message" role="status"></p></article>
+            <article id="demoControls" class="panel demo-controls" hidden>
+              <div class="section-head"><div><p class="eyebrow">SIMULATOR</p><h3>Demo controls</h3></div><button id="pauseDemo" class="button small quiet">Pause stream</button></div>
+              <label class="field-label" for="demoMode">Operating mode</label><select id="demoMode" class="select"><option value="idle">Idle</option><option value="ground">Ground</option><option value="thrust">Thrust</option><option value="flight">Flight</option></select>
+              <div class="divider"></div><label class="field-label" for="armSelect">Selected arm</label><select id="armSelect" class="select"></select>
+              <fieldset id="faultChoices" class="fault-choices"><legend>Possible faults</legend><label><input type="checkbox" value="1"> Propeller damage</label><label><input type="checkbox" value="2"> Crack</label><label><input type="checkbox" value="4"> Loose screw</label></fieldset>
+              <label class="checkline"><input id="dangerFlag" type="checkbox"> Mark severity as Danger</label><label class="checkline"><input id="invalidFlag" type="checkbox"> Simulate unavailable sensor</label>
+              <button id="applyFault" class="button secondary full">Apply to arm</button>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <section id="eventsTab" class="tab-panel" hidden><article class="panel events-panel"><div class="section-head"><div><p class="eyebrow">SESSION HISTORY</p><h3>Events</h3></div><button id="clearEvents" class="button quiet small">Clear history</button></div><div id="eventsList" class="events-list"></div></article></section>
+
+      <section id="settingsTab" class="tab-panel" hidden><div class="settings-grid"><article class="panel"><p class="eyebrow">TELEMETRY</p><h3>Freshness timeout</h3><p class="muted">Mark telemetry stale if no fresh assessment arrives within this interval.</p><label class="field-label" for="timeoutSelect">Timeout</label><select id="timeoutSelect" class="select"><option value="5">5 seconds</option><option value="10">10 seconds</option><option value="30">30 seconds</option><option value="60">60 seconds</option></select></article><article class="panel"><p class="eyebrow">SESSION</p><h3>Export data</h3><p class="muted">Download the latest assessment and up to 60 session events as JSON.</p><button id="exportSession" class="button secondary">Export session JSON</button></article><article class="panel"><p class="eyebrow">ABOUT THIS BUILD</p><h3>Receive-only monitor</h3><p class="muted">Drone Doctor displays the status reported by the detector. It does not classify sensor signals in this build and sends no flight-control commands.</p></article></div></section>
+    </section>
+  </main>
+
+  <dialog id="armDialog" class="arm-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form><p class="eyebrow">ARM ASSESSMENT</p><h2 id="dialogArmTitle">Arm 1</h2><p id="dialogArmState" class="dialog-state">Awaiting assessment</p><div id="dialogFaults" class="dialog-faults"></div><p id="dialogHint" class="muted"></p></dialog>
+  <footer><span>Drone Doctor · Browser edition</span><span>Receive-only · No flight controls</span></footer>
+  <script src="app.js" defer></script>
+</body>
+</html>
+
